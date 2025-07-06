@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Yılan Oyunu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="ui-top">
+            <div id="score-container">Skor: <span id="score">0</span></div>
+            <div id="coin-container">Coin: <span id="coins">0</span></div>
+            <div id="highscore-container">En Yüksek: <span id="highscore">0</span></div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="ui-bottom">
+            <div id="mission-container">
+                <p id="mission-text">Görev: Yükleniyor...</p>
+                <div class="progress-bar-container">
+                    <div id="mission-progress" class="progress-bar"></div>
+                </div>
+            </div>
+            <div id="powerup-container">
+                <!-- Aktif güçlendirmeler burada görünecek -->
+            </div>
+        </div>
+
+        <div id="start-screen" class="modal-overlay active">
+            <div class="modal-content">
+                <h1>Yılan Oyunu</h1>
+                <p>Yılanı hareket ettirmek için ekranı kaydırın. Duvarlardan geçebilirsiniz ama kendinize çarpmayın!</p>
+                <button id="start-game-btn">Oyunu Başlat</button>
+                <button id="shop-btn-main">Mağaza</button>
+            </div>
+        </div>
+
+        <div id="game-over-screen" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Oyun Bitti!</h2>
+                <p>Skorun: <span id="final-score">0</span></p>
+                <p>Kazandığın Coin: <span id="earned-coins">0</span></p>
+                <button id="restart-game-btn">Yeniden Oyna</button>
+                <button id="rewarded-ad-btn">Devam Et (Reklam İzle)</button>
+                <button id="shop-btn-gameover">Mağaza</button>
+                <button id="share-score-btn">Skoru Paylaş</button>
+            </div>
+        </div>
+
+        <div id="ad-prompt-screen" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Bonus Fırsatı!</h2>
+                <p>50 ekstra coin kazanmak için kısa bir reklam izlemek ister misin?</p>
+                <button id="watch-ad-for-coins-btn">Evet, İzle!</button>
+                <button id="skip-ad-btn">Hayır, Teşekkürler</button>
+            </div>
+        </div>
+
+        <div id="shop-screen" class="modal-overlay">
+            <div class="modal-content">
+                <div class="shop-header">
+                    <h2>Mağaza</h2>
+                    <span id="shop-coin-balance">Coin: 0</span>
+                    <button id="close-shop-btn">Kapat</button>
+                </div>
+                <div class="shop-tabs">
+                    <button class="tab-link active" data-tab="tab-skins">Yılanlar</button>
+                    <button class="tab-link" data-tab="tab-animals">Hayvanlar</button>
+                    <button class="tab-link" data-tab="tab-foods">Yemler</button>
+                    <button class="tab-link" data-tab="tab-backgrounds">Arka Planlar</button>
+                    <button class="tab-link" data-tab="tab-powerups">Güçlendirmeler</button>
+                </div>
+                <div id="tab-skins" class="tab-content active"></div>
+                <div id="tab-animals" class="tab-content"></div>
+                <div id="tab-foods" class="tab-content"></div>
+                <div id="tab-backgrounds" class="tab-content"></div>
+                <div id="tab-powerups" class="tab-content"></div>
+            </div>
+        </div>
+    </div>
+    <div id="toast-container"></div>
+
+    <script src="https://unpkg.com/tone@14.7.58/build/Tone.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
