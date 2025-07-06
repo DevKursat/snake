@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Varsayılan Oyuncu Verileri
     const defaultPlayerData = {
-        coins: 999999999,
+        coins: 20,
         highscore: 0,
         unlockedSkins: ['green'],
         unlockedAnimals: ['snake'],
