@@ -27,13 +27,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const shopCoinBalanceEl = document.getElementById('shop-coin-balance');
     const shopTabs = document.querySelectorAll('.tab-link');
     const shopTabContents = document.querySelectorAll('.tab-content');
+    const audioSettingsBtn = document.getElementById('audio-settings-btn');
+    const audioSettingsBtnGameOver = document.getElementById('audio-settings-btn-gameover');
+    const audioSettingsScreen = document.getElementById('audio-settings-screen');
+    const closeAudioSettingsBtn = document.getElementById('close-audio-settings-btn');
+    const masterVolumeSlider = document.getElementById('master-volume');
+    const uiVolumeSlider = document.getElementById('ui-volume');
+    const effectsVolumeSlider = document.getElementById('effects-volume');
 
     // Oyun Ayarları
     let gridSize = 20;
     let tileCountX, tileCountY;
 
     // Oyun Değişkenleri
-    let snake, food, score, gameLoop, direction, newDirection, touchStartX, touchStartY, gameInProgress;
+    let snake, food, score, gameLoop, direction, newDirection, touchStartX, touchStartY, gameInProgress, foodEatenCount;
     let floatingTexts = [];
     let specialItems = []; // Özel öğeler (güçlendirmeler, bomba)
     let activePowerups = {}; // Aktif güçlendirmeler
@@ -43,23 +50,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentGameSpeed = baseGameSpeed;
 
     // Ses Efektleri
-    let eatSound;
-    let selfCollisionSound;
-    let bombCollisionSound;
-    let clickSound;
-    let gameOverSound;
+    let eatSound, selfCollisionSound, bombCollisionSound, clickSound, gameOverSound;
+    let uiChannel, effectsChannel;
 
     // Varsayılan Oyuncu Verileri
     const defaultPlayerData = {
         coins: 20,
         highscore: 0,
-        unlockedSkins: ['green'],
-        unlockedAnimals: ['snake'],
-        unlockedFoods: ['apple'],
-        unlockedBackgrounds: ['dark'],
-        unlockedPowerups: [], // Güçlendirmeler başlangıçta kilitli
-        equippedSkin: 'green',
-        equippedBackground: 'dark',
+        unlockedRenk: ['green'],
+        unlockedHayvan: ['snake'],
+        unlockedYem: ['apple'],
+        unlockedArkaplan: ['dark'],
+        unlockedOzelyem: [], // Güçlendirmeler başlangıçta kilitli
+        equippedRenk: 'green',
+        equippedArkaplan: 'dark',
         activeFoods: ['apple'], // Aktif yemler
         activePowerups: [], // Aktif güçlendirmeler
         currentMission: {}, // Boş obje olarak başlat
@@ -70,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Veri Yapıları
     const shopItems = {
-        skins: [
+        renk: [
             { id: 'green', name: 'Yeşil', price: 0, value: '#4caf50' },
             { id: 'blue', name: 'Mavi', price: 50, value: '#2196F3' },
             { id: 'orange', name: 'Turuncu', price: 75, value: '#FF9800' },
@@ -78,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'purple', name: 'Mor', price: 120, value: '#9C27B0' },
             { id: 'yellow', name: 'Sarı', price: 150, value: '#FFEB3B' }
         ],
-        animals: [
+        hayvan: [
             { id: 'snake', name: 'Yılan', price: 0, value: '🐍' },
             { id: 'dragon', name: 'Ejderha', price: 200, value: '🐉' },
             { id: 'caterpillar', name: 'Tırtıl', price: 150, value: '🐛' },
@@ -86,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'lizard', name: 'Kertenkele', price: 250, value: '🦎' },
             { id: 'fish', name: 'Balık', price: 180, value: '🐠' }
         ],
-        foods: [
+        yem: [
             { id: 'apple', name: 'Elma', price: 0, value: '🍎' },
             { id: 'strawberry', name: 'Çilek', price: 25, value: '🍓' },
             { id: 'orange', name: 'Portakal', price: 25, value: '🍊' },
@@ -94,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'grape', name: 'Üzüm', price: 35, value: '🍇' },
             { id: 'cherry', name: 'Kiraz', price: 40, value: '🍒' }
         ],
-        backgrounds: [
+        arkaplan: [
             { id: 'dark', name: 'Karanlık', price: 0, value: '#111' },
             { id: 'light', name: 'Açık Gri', price: 150, value: '#555' },
             { id: 'blue_sky', name: 'Mavi Gökyüzü', price: 200, value: '#87CEEB' },
@@ -102,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'desert', name: 'Çöl', price: 300, value: '#FAD201' },
             { id: 'space', name: 'Uzay', price: 350, value: '#000033' }
         ],
-        powerups: [
+        ozelyem: [
             { id: '2x', name: '2x Puan', price: 300, value: '✨', description: '15sn puanları ikiye katlar.' },
             { id: 'shield', name: 'Kalkan', price: 400, value: '🛡️', description: '15sn dokunulmazlık sağlar.' },
             { id: 'magnet', name: 'Mıknatıs', price: 500, value: '🧲', description: 'Yemleri kendine çeker.' },
@@ -153,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameInProgress = true;
         adContinueUsed = false;
         score = 0;
+        foodEatenCount = 0;
         generateNewMission(); // Yeni görev oluştur
         direction = { x: 1, y: 0 };
         newDirection = { x: 1, y: 0 };
@@ -210,7 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 snake.splice(1, 3);
                 activePowerups['shield'] = { startTime: Date.now(), duration: 3000, value: '🛡️' }; // 3 saniye kalkan
                 gameInProgress = true;
-                gameLoop = setInterval(mainLoop, 120);
+                if (gameLoop) clearTimeout(gameLoop);
+                gameLoop = setTimeout(mainLoop, currentGameSpeed);
             }
         });
     }
@@ -257,12 +263,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if ('2x' in activePowerups) points = 2;
             score += points;
             playerData.coins += points;
+            foodEatenCount++;
             floatingTexts.push({ text: `+${points}`, x: head.x, y: head.y, alpha: 1 });
             checkMissionProgress('food', 1);
             checkMissionProgress('score', score);
             updateScoreUI();
             generateFood();
             eatSound.triggerAttackRelease("C4", "8n"); // Yem yeme sesi
+
+            // Her 9 yemde bir hızı artır
+            if (foodEatenCount % 9 === 0) {
+                baseGameSpeed = Math.max(50, baseGameSpeed * 0.95); // Hızı %5 azalt, min 50ms
+                floatingTexts.push({ text: '⚡', x: head.x, y: head.y, alpha: 1, duration: 1000, fontSize: 1.5 }); // Şimşek emojisi animasyonu
+            }
+
         } else if (!('magnet' in activePowerups) || (Math.abs(head.x - food.x) + Math.abs(head.y - food.y)) > 1) { // Mıknatıs yoksa veya yem çok uzaktaysa yılan küçülür
             snake.pop();
         }
@@ -326,9 +340,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function draw() {
         try {
             console.log("draw() çağrıldı.");
-            const bgColor = shopItems.backgrounds.find(b => b.id === playerData.equippedBackground).value;
-            const snakeColor = shopItems.skins.find(s => s.id === playerData.equippedSkin).value;
-            const snakeHead = shopItems.animals.find(a => a.id === playerData.equippedAnimal)?.value || shopItems.animals[0].value;
+            const bgColor = shopItems.arkaplan.find(b => b.id === playerData.equippedArkaplan).value;
+            const snakeColor = shopItems.renk.find(s => s.id === playerData.equippedRenk).value;
+            const snakeHead = shopItems.hayvan.find(a => a.id === playerData.equippedHayvan)?.value || shopItems.hayvan[0].value;
             const foodIcon = food.value;
 
             console.log("snakeColor:", snakeColor);
@@ -399,14 +413,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function generateFood() {
-        const availableFoods = playerData.activeFoods.map(id => shopItems.foods.find(f => f.id === id));
-        if (availableFoods.length === 0) { // Eğer aktif yem yoksa varsayılan elmayı kullan
-            food = { x: Math.floor(Math.random() * tileCountX), y: Math.floor(Math.random() * tileCountY), value: '🍎' };
+        const uiTopHeight = document.getElementById('ui-top').offsetHeight;
+        const uiBottomHeight = document.getElementById('ui-bottom').offsetHeight;
+        const topOffset = Math.ceil(uiTopHeight / gridSize);
+        const bottomOffset = Math.ceil(uiBottomHeight / gridSize);
+
+        const availableFoods = playerData.activeFoods.map(id => shopItems.yem.find(f => f.id === id));
+        let newFood;
+
+        if (availableFoods.length === 0) {
+             newFood = {
+                x: Math.floor(Math.random() * tileCountX),
+                y: Math.floor(Math.random() * (tileCountY - topOffset - bottomOffset)) + topOffset,
+                value: '🍎'
+            };
         } else {
             const randomFood = availableFoods[Math.floor(Math.random() * availableFoods.length)];
-            food = { x: Math.floor(Math.random() * tileCountX), y: Math.floor(Math.random() * tileCountY), value: randomFood.value };
+            newFood = {
+                x: Math.floor(Math.random() * tileCountX),
+                y: Math.floor(Math.random() * (tileCountY - topOffset - bottomOffset)) + topOffset,
+                value: randomFood.value
+            };
         }
-        if (snake && snake.some(part => part.x === food.x && part.y === food.y)) generateFood();
+        
+        if (snake && snake.some(part => part.x === newFood.x && part.y === newFood.y)) {
+            generateFood();
+        } else {
+            food = newFood;
+        }
     }
 
     function spawnSpecialItem() {
@@ -507,23 +541,45 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadData() { 
         const saved = localStorage.getItem('snakeGameData_v12'); 
         try {
-            playerData = saved ? { ...defaultPlayerData, ...JSON.parse(saved) } : { ...defaultPlayerData }; 
+            let loadedData = saved ? JSON.parse(saved) : {};
+            playerData = { ...defaultPlayerData, ...loadedData }; 
+
+            // Eski anahtarları yeni anahtarlara taşı
+            const migrationMap = {
+                unlockedSkins: 'unlockedRenk',
+                unlockedAnimals: 'unlockedHayvan',
+                unlockedFoods: 'unlockedYem',
+                unlockedBackgrounds: 'unlockedArkaplan',
+                unlockedPowerups: 'unlockedOzelyem',
+                equippedSkin: 'equippedRenk',
+                equippedAnimal: 'equippedHayvan',
+                equippedBackground: 'equippedArkaplan'
+            };
+
+            for (const oldKey in migrationMap) {
+                const newKey = migrationMap[oldKey];
+                if (loadedData[oldKey] !== undefined && playerData[newKey] === undefined) {
+                    playerData[newKey] = loadedData[oldKey];
+                }
+            }
+
             // unlocked dizilerinin varlığını kontrol et ve yoksa boş dizi olarak başlat
             for (const key in defaultPlayerData) {
                 if (key.startsWith('unlocked') && !playerData[key]) {
                     playerData[key] = [];
                 }
             }
-            // Varsayılan öğelerin kilidini aç
-            playerData.unlockedSkins = Array.from(new Set([...playerData.unlockedSkins, 'green']));
-            playerData.unlockedAnimals = Array.from(new Set([...playerData.unlockedAnimals, 'snake']));
-            playerData.unlockedFoods = Array.from(new Set([...playerData.unlockedFoods, 'apple']));
-            playerData.unlockedBackgrounds = Array.from(new Set([...playerData.unlockedBackgrounds, 'dark']));
+            
+            // Varsayılan öğelerin kilidini aç (yeni isimlerle)
+            playerData.unlockedRenk = Array.from(new Set([...(playerData.unlockedRenk || []), 'green']));
+            playerData.unlockedHayvan = Array.from(new Set([...(playerData.unlockedHayvan || []), 'snake']));
+            playerData.unlockedYem = Array.from(new Set([...(playerData.unlockedYem || []), 'apple']));
+            playerData.unlockedArkaplan = Array.from(new Set([...(playerData.unlockedArkaplan || []), 'dark']));
 
-            // Eğer yüklü veride yoksa veya boşsa varsayılanları ata
-            if (!playerData.equippedSkin) playerData.equippedSkin = defaultPlayerData.equippedSkin;
-            if (!playerData.equippedAnimal) playerData.equippedAnimal = defaultPlayerData.equippedAnimal;
-            if (!playerData.equippedBackground) playerData.equippedBackground = defaultPlayerData.equippedBackground;
+            // Eğer yüklü veride yoksa veya boşsa varsayılanları ata (yeni isimlerle)
+            if (!playerData.equippedRenk) playerData.equippedRenk = defaultPlayerData.equippedRenk;
+            if (!playerData.equippedHayvan) playerData.equippedHayvan = defaultPlayerData.equippedHayvan;
+            if (!playerData.equippedArkaplan) playerData.equippedArkaplan = defaultPlayerData.equippedArkaplan;
             if (!playerData.activeFoods || playerData.activeFoods.length === 0) playerData.activeFoods = [...defaultPlayerData.activeFoods];
             if (!playerData.activePowerups || playerData.activePowerups.length === 0) playerData.activePowerups = [...defaultPlayerData.activePowerups];
 
@@ -606,16 +662,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'shop-item';
                 const unlockedKey = `unlocked${category.charAt(0).toUpperCase() + category.slice(1)}`;
-                const equippedKey = `equipped${category.charAt(0).toUpperCase() + category.slice(1, -1)}`;
                 
                 if (!playerData[unlockedKey]) playerData[unlockedKey] = [];
 
                 const isUnlocked = playerData[unlockedKey].includes(item.id);
                 let btn;
 
-                if (category === 'foods' || category === 'powerups') {
-                    const activeKey = `active${category.charAt(0).toUpperCase() + category.slice(1)}`;
-                    const isActive = playerData[activeKey].includes(item.id);
+                if (category === 'yem' || category === 'ozelyem') {
+                    const activeKey = category === 'yem' ? 'activeFoods' : 'activePowerups';
+                    const isActive = playerData[activeKey] && playerData[activeKey].includes(item.id);
                     if (isActive) {
                         btn = `<button data-action="remove" data-category="${category}" data-itemid="${item.id}">Çıkar</button>`;
                     } else if (isUnlocked) {
@@ -625,8 +680,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         btn = `<button disabled>Al (${item.price})</button>`;
                     }
-                } else { // skins, animals, backgrounds
-                    const equippedKey = `equipped${category.charAt(0).toUpperCase() + category.slice(1, -1)}`;
+                } else { // renk, hayvan, arkaplan
+            const unlockedKey = `unlocked${category.charAt(0).toUpperCase() + category.slice(1)}`;
+        const equippedKey = `equipped${category.charAt(0).toUpperCase() + category.slice(1)}`;
                     const isEquipped = playerData[equippedKey] === item.id;
                     if (isEquipped) {
                         btn = `<button class="equipped" disabled>Kullanımda</button>`;
@@ -642,11 +698,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 let previewContent = '';
                 let previewStyle = '';
 
-                if (category === 'skins' || category === 'backgrounds') {
+                if (category === 'renk' || category === 'arkaplan') {
                     previewStyle = `background-color: ${item.value}; border: 1px solid #555;`;
                     previewContent = ''; // Remove text from color previews
                 } else {
-                    previewContent = item.value; // Show emoji for animals, foods, powerups
+                    previewContent = item.value; // Show emoji for hayvan, yem, ozelyem
                     previewStyle = `background-color: #2c2c2c;`; // Default background for emojis
                 }
 
@@ -662,17 +718,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = shopItems[category].find(i => i.id === itemid);
         if (!item) return;
         const unlockedKey = `unlocked${category.charAt(0).toUpperCase() + category.slice(1)}`;
-        const equippedKey = `equipped${category.charAt(0).toUpperCase() + category.slice(1, -1)}`;
+        const equippedKey = `equipped${category.charAt(0).toUpperCase() + category.slice(1)}`;
+
         if (action === 'buy') {
             if (playerData.coins >= item.price) {
                 playerData.coins -= item.price;
                 if (!playerData[unlockedKey]) playerData[unlockedKey] = []; 
                 playerData[unlockedKey].push(item.id);
-                if (category === 'skins' || category === 'animals' || category === 'backgrounds') { 
+                if (category === 'renk' || category === 'hayvan' || category === 'arkaplan') { 
                     playerData[equippedKey] = item.id; 
-                } else if (category === 'foods') {
+                } else if (category === 'yem') {
                     playerData.activeFoods.push(item.id);
-                } else if (category === 'powerups') {
+                } else if (category === 'ozelyem') {
                     playerData.activePowerups.push(item.id);
                 }
                 checkMissionProgress('unlock', itemid);
@@ -684,18 +741,18 @@ document.addEventListener('DOMContentLoaded', () => {
             playerData[equippedKey] = item.id;
             showToast(`${item.name} seçildi!`, 2000);
         } else if (action === 'add') {
-            if (category === 'foods') {
+            if (category === 'yem') {
                 playerData.activeFoods.push(item.id);
                 showToast(`${item.name} eklendi!`, 2000);
-            } else if (category === 'powerups') {
+            } else if (category === 'ozelyem') {
                 playerData.activePowerups.push(item.id);
                 showToast(`${item.name} eklendi!`, 2000);
             }
         } else if (action === 'remove') {
-            if (category === 'foods') {
+            if (category === 'yem') {
                 playerData.activeFoods = playerData.activeFoods.filter(id => id !== item.id);
                 showToast(`${item.name} çıkarıldı!`, 2000);
-            } else if (category === 'powerups') {
+            } else if (category === 'ozelyem') {
                 playerData.activePowerups = playerData.activePowerups.filter(id => id !== item.id);
                 showToast(`${item.name} çıkarıldı!`, 2000);
             }
@@ -710,6 +767,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = `Yılan oyununda ${score} puan aldım! Sen de oyna!`;
         if (navigator.share) {
             navigator.share({ title: 'Yılan Oyunu Skorum', text: text, url: window.location.href }).catch(console.error);
+        }
+    }
+
+    function saveAudioSettings() {
+        const settings = {
+            master: Tone.Master.volume.value,
+            ui: uiChannel.volume.value,
+            effects: effectsChannel.volume.value
+        };
+        localStorage.setItem('snakeGameAudioSettings_v1', JSON.stringify(settings));
+    }
+
+    function loadAudioSettings() {
+        const saved = localStorage.getItem('snakeGameAudioSettings_v1');
+        if (saved) {
+            const settings = JSON.parse(saved);
+            masterVolumeSlider.value = settings.master;
+            uiVolumeSlider.value = settings.ui;
+            effectsVolumeSlider.value = settings.effects;
+
+            Tone.Master.volume.value = settings.master;
+            uiChannel.volume.value = settings.ui;
+            effectsChannel.volume.value = settings.effects;
+        } else {
+            // Varsayılan değerleri ayarla
+            masterVolumeSlider.value = -10;
+            uiVolumeSlider.value = -10;
+            effectsVolumeSlider.value = -10;
+
+            Tone.Master.volume.value = -10;
+            uiChannel.volume.value = -10;
+            effectsChannel.volume.value = -10;
         }
     }
     function showFakeAd(duration, callback) {
@@ -743,12 +832,19 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMissionUI();
         startScreen.classList.add('active');
 
+        Tone.start(); // Ses bağlamını burada başlat
+
         // Ses efektlerini burada başlat
-        eatSound = new Tone.MembraneSynth().toDestination();
-        selfCollisionSound = new Tone.NoiseSynth().toDestination();
-        bombCollisionSound = new Tone.MetalSynth().toDestination();
-        clickSound = new Tone.Synth({"oscillator": {"type": "sine"}, "envelope": {"attack": 0.001, "decay": 0.05, "sustain": 0.0, "release": 0.05}}).toDestination();
-        gameOverSound = new Tone.NoiseSynth().toDestination();
+        uiChannel = new Tone.Channel().toDestination();
+        effectsChannel = new Tone.Channel().toDestination();
+
+        eatSound = new Tone.MembraneSynth().connect(effectsChannel);
+        selfCollisionSound = new Tone.NoiseSynth().connect(effectsChannel);
+        bombCollisionSound = new Tone.MetalSynth().connect(effectsChannel);
+        gameOverSound = new Tone.NoiseSynth().connect(effectsChannel);
+        clickSound = new Tone.Synth({"oscillator": {"type": "sine"}, "envelope": {"attack": 0.001, "decay": 0.05, "sustain": 0.0, "release": 0.05}}).connect(uiChannel);
+
+        loadAudioSettings();
 
         // Kontroller
         document.addEventListener('keydown', e => {
@@ -770,7 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
             touchStartX = null; touchStartY = null;
         }, { passive: true });
         // Butonlar
-        startGameBtn.addEventListener('click', () => { Tone.start(); clickSound.triggerAttackRelease("C5", "64n"); initGame(); });
+        startGameBtn.addEventListener('click', () => { clickSound.triggerAttackRelease("C5", "64n"); initGame(); });
         restartGameBtn.addEventListener('click', () => { clickSound.triggerAttackRelease("C5", "64n"); initGame(); });
         mainShopBtn.addEventListener('click', () => { clickSound.triggerAttackRelease("C5", "64n"); openShop(); });
         gameOverShopBtn.addEventListener('click', () => { clickSound.triggerAttackRelease("C5", "64n"); openShop(); });
@@ -798,6 +894,40 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.classList.add('active');
             document.getElementById(e.target.dataset.tab).classList.add('active');
         }));
+        audioSettingsBtn.addEventListener('click', () => {
+            clickSound.triggerAttackRelease("C5", "64n");
+            audioSettingsScreen.classList.add('active');
+        });
+
+        audioSettingsBtnGameOver.addEventListener('click', () => {
+            clickSound.triggerAttackRelease("C5", "64n");
+            audioSettingsScreen.classList.add('active');
+        });
+
+        closeAudioSettingsBtn.addEventListener('click', () => {
+            clickSound.triggerAttackRelease("C5", "64n");
+            audioSettingsScreen.classList.remove('active');
+        });
+
+        masterVolumeSlider.addEventListener('input', (e) => { 
+            Tone.Master.volume.value = e.target.value; 
+            saveAudioSettings();
+            // Master volume preview
+            new Tone.Synth().toDestination().triggerAttackRelease("C4", "8n");
+        });
+        uiVolumeSlider.addEventListener('input', (e) => { 
+            uiChannel.volume.value = e.target.value; 
+            saveAudioSettings();
+            // UI volume preview
+            clickSound.triggerAttackRelease("C5", "64n");
+        });
+        effectsVolumeSlider.addEventListener('input', (e) => { 
+            effectsChannel.volume.value = e.target.value; 
+            saveAudioSettings();
+            // Effects volume preview
+            eatSound.triggerAttackRelease("C4", "8n");
+        });
+
         window.addEventListener('resize', resizeCanvas);
     }
 

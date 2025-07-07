@@ -34,6 +34,28 @@
                 <p>Yılanı hareket ettirmek için ekranı kaydırın. Duvarlardan geçebilirsiniz ama kendinize çarpmayın!</p>
                 <button id="start-game-btn">Oyunu Başlat</button>
                 <button id="shop-btn-main">Mağaza</button>
+                <button id="audio-settings-btn">Ses Ayarları</button>
+            </div>
+        </div>
+
+        <div id="audio-settings-screen" class="modal-overlay">
+            <div class="modal-content audio-settings-modal-content">
+                <h2>Ses Ayarları</h2>
+                <div class="settings-container">
+                    <div class="setting-item">
+                        <label for="master-volume">Ana Ses</label>
+                        <input type="range" id="master-volume" min="-40" max="0" value="-10">
+                    </div>
+                    <div class="setting-item">
+                        <label for="ui-volume">Arayüz Sesleri</label>
+                        <input type="range" id="ui-volume" min="-40" max="0" value="-10">
+                    </div>
+                    <div class="setting-item">
+                        <label for="effects-volume">Oyun Efektleri</label>
+                        <input type="range" id="effects-volume" min="-40" max="0" value="-10">
+                    </div>
+                </div>
+                <button id="close-audio-settings-btn">Kapat</button>
             </div>
         </div>
 
@@ -46,6 +68,7 @@
                 <button id="rewarded-ad-btn">Devam Et (Reklam İzle)</button>
                 <button id="shop-btn-gameover">Mağaza</button>
                 <button id="share-score-btn">Skoru Paylaş</button>
+                <button id="audio-settings-btn-gameover">Ses Ayarları</button>
             </div>
         </div>
 
@@ -66,17 +89,17 @@
                     <button id="close-shop-btn">Kapat</button>
                 </div>
                 <div class="shop-tabs">
-                    <button class="tab-link active" data-tab="tab-skins">Yılanlar</button>
-                    <button class="tab-link" data-tab="tab-animals">Hayvanlar</button>
-                    <button class="tab-link" data-tab="tab-foods">Yemler</button>
-                    <button class="tab-link" data-tab="tab-backgrounds">Arka Planlar</button>
-                    <button class="tab-link" data-tab="tab-powerups">Güçlendirmeler</button>
+                    <button class="tab-link active" data-tab="tab-renk">Renk</button>
+                    <button class="tab-link" data-tab="tab-hayvan">Hayvan</button>
+                    <button class="tab-link" data-tab="tab-yem">Yem</button>
+                    <button class="tab-link" data-tab="tab-arkaplan">Arka Plan</button>
+                    <button class="tab-link" data-tab="tab-ozelyem">Özel Yem</button>
                 </div>
-                <div id="tab-skins" class="tab-content active"></div>
-                <div id="tab-animals" class="tab-content"></div>
-                <div id="tab-foods" class="tab-content"></div>
-                <div id="tab-backgrounds" class="tab-content"></div>
-                <div id="tab-powerups" class="tab-content"></div>
+                <div id="tab-renk" class="tab-content active"></div>
+                <div id="tab-hayvan" class="tab-content"></div>
+                <div id="tab-yem" class="tab-content"></div>
+                <div id="tab-arkaplan" class="tab-content"></div>
+                <div id="tab-ozelyem" class="tab-content"></div>
             </div>
         </div>
     </div>
