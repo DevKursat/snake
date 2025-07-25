@@ -1105,19 +1105,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initialize() {
-        uiChannel = new Tone.Channel().toDestination();
-        effectsChannel = new Tone.Channel().toDestination();
-        eatSound = new Tone.MembraneSynth().connect(effectsChannel);
-        selfCollisionSound = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.01, decay: 0.15 } }).connect(effectsChannel);
-        bombCollisionSound = new Tone.MetalSynth({ harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5 }).connect(effectsChannel);
-        gameOverSound = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.01, decay: 0.5, sustain: 0.1, release: 0.2 } }).connect(effectsChannel);
-        clickSound = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.001, decay: 0.05, release: 0.05 } }).connect(uiChannel);
-        previewSound = new Tone.Synth().toDestination();
+        uiChannel = new Tone.Channel();
+        effectsChannel = new Tone.Channel();
+        eatSound = new Tone.MembraneSynth();
+        selfCollisionSound = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.01, decay: 0.15 } });
+        bombCollisionSound = new Tone.MetalSynth({ harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5 });
+        gameOverSound = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.01, decay: 0.5, sustain: 0.1, release: 0.2 } });
+        clickSound = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.001, decay: 0.05, release: 0.05 } });
+        previewSound = new Tone.Synth();
         
         loadData();
         resizeCanvas();
         updateUI();
         showModal(startScreen);
+
+        // Resume AudioContext on first user interaction
+        document.body.addEventListener('click', () => {
+            if (Tone.context.state !== 'running') {
+                Tone.start().then(() => {
+                    console.log("AudioContext resumed!");
+                    // Connect audio nodes after context is resumed
+                    uiChannel.toDestination();
+                    effectsChannel.toDestination();
+                    eatSound.connect(effectsChannel);
+                    selfCollisionSound.connect(effectsChannel);
+                    bombCollisionSound.connect(effectsChannel);
+                    gameOverSound.connect(effectsChannel);
+                    clickSound.connect(uiChannel);
+                    previewSound.toDestination();
+
+                    // Set initial volumes after context is resumed
+                    const audioSettings = playerData.audioSettings || { master: -10, ui: -10, effects: -10 };
+                    Tone.Master.volume.value = audioSettings.master;
+                    uiChannel.volume.value = audioSettings.ui;
+                    effectsChannel.volume.value = audioSettings.effects;
+                }).catch(e => console.error("Error resuming AudioContext:", e));
+            }
+        }, { once: true });
 
         document.addEventListener('keydown', e => {
             if (e.key === 'ArrowUp' && direction.y === 0) newDirection = { x: 0, y: -1 };
