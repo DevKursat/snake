@@ -1,0 +1,1 @@
+fix: Corrected audio settings assignment in initialize function
