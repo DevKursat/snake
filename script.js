@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'speed', name: 'Hız', price: 250, value: '⚡', description: '10sn yılanı hızlandırır.' },
             { id: 'slow', name: 'Yavaşlat', price: 250, value: '🐢', description: '10sn yılanı yavaşlatır.' },
             { id: 'grow', name: 'Büyü', price: 350, value: '🔼', description: 'Yılanı 2 birim büyütür.' },
-            { id: 'shrink', price: 350, value: '🔽', description: 'Yılanı 2 birim küçültür.' }
+            { id: 'shrink', name: 'Küçül', price: 350, value: '🔽', description: 'Yılanı 2 birim küçültür.' }
         ]
     };
     let currentMission = {};
@@ -280,9 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
         showModal(null);
         gameContainer.classList.remove('shake');
 
-        lastTime = performance.now();
-        accumulator = 0;
-        gameLoop();
+        lastTime = 0; // Reset lastTime for a new game
+        accumulator = 0; // Reset accumulator for a new game
+        requestAnimationFrame(gameLoop); // Start the animation loop correctly
     }
 
     function gameLoop(currentTime) {
@@ -291,10 +291,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         animationFrameId = requestAnimationFrame(gameLoop);
 
+        // Handle the very first call where lastTime is 0
+        if (lastTime === 0) {
+            lastTime = currentTime;
+        }
+
         const deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
+        // Prevent large jumps if tab was inactive
         if (deltaTime > 1000) {
+            // If a large jump occurs, reset accumulator and lastTime to prevent NaN propagation
+            accumulator = 0;
+            // We might want to re-render the snake at its current position without interpolation
+            // or just let the next frame handle it. For now, let's just prevent NaN.
+            draw(1.0); // Draw at current position without interpolation
             return;
         }
 
@@ -440,10 +451,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 showModal(null);
                 gameInProgress = true;
                 
-                lastTime = performance.now();
+                lastTime = 0;
                 accumulator = 0;
                 lastSnakeForRender = JSON.parse(JSON.stringify(snake));
-                gameLoop();
+                requestAnimationFrame(gameLoop);
 
                 if (specialItemInterval) clearInterval(specialItemInterval);
                 specialItemInterval = setInterval(spawnSpecialItem, 5000);
