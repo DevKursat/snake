@@ -11,6 +11,7 @@
         <div id="ui-top">
             <div id="score-container">Skor: <span id="score">0</span></div>
             <div id="coin-container">Coin: <span id="coins">0</span></div>
+            <div id="lives-container">Can: <span id="lives">5</span></div>
             <div id="highscore-container">En Yüksek: <span id="highscore">0</span></div>
         </div>
 
@@ -31,17 +32,46 @@
         <div id="start-screen" class="modal-overlay active">
             <div class="modal-content">
                 <h1>Yılan Oyunu</h1>
-                <p>Yılanı hareket ettirmek için ekranı kaydırın. Duvarlardan geçebilirsiniz ama kendinize çarpmayın!</p>
+                <p>Yılanı hareket ettirmek için ekranı kaydırın veya yön tuşlarını kullanın.</p>
                 <button id="start-game-btn">Oyunu Başlat</button>
+                <button id="levels-btn">Bölümler</button>
                 <button id="shop-btn-main">Mağaza</button>
-                <button id="audio-settings-btn">Ses Ayarları</button>
+                <button id="settings-btn">Ayarlar</button>
+                <button id="classic-challenges-btn">Klasik Görevler</button>
             </div>
         </div>
 
-        <div id="audio-settings-screen" class="modal-overlay">
-            <div class="modal-content audio-settings-modal-content">
-                <h2>Ses Ayarları</h2>
+        <div id="level-selection-screen" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Bölümler</h2>
+                <div id="level-list-container" class="level-list-grid">
+                    <!-- Bölümler buraya dinamik olarak eklenecek -->
+                </div>
+                <button id="close-levels-btn">Geri</button>
+            </div>
+        </div>
+
+        <div id="settings-screen" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Ayarlar</h2>
                 <div class="settings-container">
+                    <div class="setting-item">
+                        <label for="snake-size">Yılan Boyutu</label>
+                        <select id="snake-size">
+                            <option value="small">Küçük</option>
+                            <option value="medium" selected>Orta</option>
+                            <option value="large">Büyük</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="classic-opponent">Klasik Modda Rakip</label>
+                        <label class="switch">
+                            <input type="checkbox" id="classic-opponent">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <hr>
+                    <h3>Ses Ayarları</h3>
                     <div class="setting-item">
                         <label for="master-volume">Ana Ses</label>
                         <input type="range" id="master-volume" min="-40" max="0" value="-10">
@@ -55,7 +85,7 @@
                         <input type="range" id="effects-volume" min="-40" max="0" value="-10">
                     </div>
                 </div>
-                <button id="close-audio-settings-btn">Kapat</button>
+                <button id="close-settings-btn">Kapat</button>
             </div>
         </div>
 
@@ -64,11 +94,21 @@
                 <h2>Oyun Bitti!</h2>
                 <p>Skorun: <span id="final-score">0</span></p>
                 <p>Kazandığın Coin: <span id="earned-coins">0</span></p>
+                <p id="level-progress-text"></p>
                 <button id="restart-game-btn">Yeniden Oyna</button>
                 <button id="rewarded-ad-btn">Devam Et (Reklam İzle)</button>
                 <button id="shop-btn-gameover">Mağaza</button>
                 <button id="share-score-btn">Skoru Paylaş</button>
-                <button id="audio-settings-btn-gameover">Ses Ayarları</button>
+                <button id="settings-btn-gameover">Ayarlar</button>
+            </div>
+        </div>
+
+        <div id="level-complete-screen" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Bölüm Tamamlandı! <span class="trophy-icon">🏆</span></h2>
+                <p>Tebrikler! Sonraki bölüme geçmeye hazır mısın?</p>
+                <button id="next-level-btn">Sonraki Bölüm</button>
+                <button id="back-to-levels-btn">Bölüm Seçimine Dön</button>
             </div>
         </div>
 
@@ -100,6 +140,16 @@
                 <div id="tab-yem" class="tab-content"></div>
                 <div id="tab-arkaplan" class="tab-content"></div>
                 <div id="tab-ozelyem" class="tab-content"></div>
+            </div>
+        </div>
+
+        <div id="classic-challenges-screen" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Klasik Görevler</h2>
+                <div id="classic-challenges-list">
+                    <!-- Klasik görevler buraya dinamik olarak eklenecek -->
+                </div>
+                <button id="close-classic-challenges-btn">Kapat</button>
             </div>
         </div>
     </div>
