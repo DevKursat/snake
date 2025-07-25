@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'speed', name: 'Hız', price: 250, value: '⚡', description: '10sn yılanı hızlandırır.' },
             { id: 'slow', name: 'Yavaşlat', price: 250, value: '🐢', description: '10sn yılanı yavaşlatır.' },
             { id: 'grow', name: 'Büyü', price: 350, value: '🔼', description: 'Yılanı 2 birim büyütür.' },
-            { id: 'shrink', name: 'Küçül', price: 350, value: '🔽', description: 'Yılanı 2 birim küçültür.' }
+            { id: 'shrink', price: 350, value: '🔽', description: 'Yılanı 2 birim küçültür.' }
         ]
     };
     let currentMission = {};
@@ -710,6 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const snakeHeadColor = shopItems.renk.find(s => s.id === playerData.equippedRenk).value;
         const snakeBodyColor = shadeColor(snakeHeadColor, -25);
+        const equippedAnimal = shopItems.hayvan.find(h => h.id === playerData.equippedHayvan).value;
 
         snake.forEach((part, index) => {
             const isHead = index === 0;
@@ -720,9 +721,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const renderY = oldPart.y * (1 - alpha) + part.y * alpha;
             
             if (isHead) {
-                console.log(`Drawing head at: (${renderX}, ${renderY}) with size ${gridSize * snakeSegmentDrawScale}`);
+                // Draw the selected animal emoji for the head
+                ctx.font = `${gridSize * 0.9 * snakeSegmentDrawScale}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(equippedAnimal, renderX * gridSize + gridSize / 2, renderY * gridSize + gridSize / 2);
+            } else {
+                // Draw rounded rectangle for body segments
+                drawSnakePart({ x: renderX, y: renderY }, color, isHead, direction);
             }
-            drawSnakePart({ x: renderX, y: renderY }, color, isHead, direction);
         });
 
         specialItems.forEach(item => {
@@ -756,7 +763,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const offset = (gridSize - segmentSize) / 2;
         const x = part.x * gridSize + offset;
         const y = part.y * gridSize + offset;
-        const cornerRadius = 4 * snakeSegmentDrawScale;
+        const cornerRadius = 8 * snakeSegmentDrawScale; // Increased for more prominent rounding
 
         ctx.fillStyle = color;
         ctx.strokeStyle = shadeColor(color, -40);
@@ -776,21 +783,22 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fill();
         ctx.stroke();
 
-        if (isHead) {
+        // Eyes are only drawn for the default snake head, not when an animal emoji is used
+        if (isHead && playerData.equippedHayvan === 'snake') { // Only draw eyes for the default 'snake' animal
             ctx.fillStyle = '#fff';
             const eyeSize = segmentSize / 7;
             let eye1_x, eye1_y, eye2_x, eye2_y;
 
-            if (currentDirection.x === 1) {
+            if (currentDirection.x === 1) { // Right
                 eye1_x = x + segmentSize * 0.7; eye1_y = y + segmentSize * 0.25;
                 eye2_x = x + segmentSize * 0.7; eye2_y = y + segmentSize * 0.75;
-            } else if (currentDirection.x === -1) {
+            } else if (currentDirection.x === -1) { // Left
                 eye1_x = x + segmentSize * 0.3; eye1_y = y + segmentSize * 0.25;
                 eye2_x = x + segmentSize * 0.3; eye2_y = y + segmentSize * 0.75;
-            } else if (currentDirection.y === 1) {
+            } else if (currentDirection.y === 1) { // Down
                 eye1_x = x + segmentSize * 0.25; eye1_y = y + segmentSize * 0.7;
                 eye2_x = x + segmentSize * 0.75; eye2_y = y + segmentSize * 0.7;
-            } else {
+            } else { // Up
                 eye1_x = x + segmentSize * 0.25; eye1_y = y + segmentSize * 0.3;
                 eye2_x = x + segmentSize * 0.75; eye2_y = y + segmentSize * 0.3;
             }
@@ -1027,9 +1035,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         btn = `<button class="equipped" disabled>Kullanımda</button>`;
                     } else if (isUnlocked) {
                         btn = `<button data-action="equip" data-category="${category}" data-itemid="${item.id}">Seç</button>`;
-                    } else {
-                        btn = `<button data-action="buy" data-category="${category}" data-itemid="${item.id}">Al (${item.price})</button>`;
                     }
+                } else {
+                    btn = `<button data-action="buy" data-category="${category}" data-itemid="${item.id}">Al (${item.price})</button>`;
                 }
 
                 itemEl.innerHTML = `<div class="item-preview" style="background-color:${item.value};">${category === 'renk' || category === 'arkaplan' ? '' : item.value}</div><p>${item.name}</p>${btn}`;
