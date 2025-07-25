@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         totalFoodEatenSession: 0, // Mevcut oyun oturumunda yenen yem sayısı
         totalGamesPlayed: 0, // Toplam oynanan oyun sayısı
         unlockedRenk: ['green'],
-        unlockedHayvan: ['snake'],
+        unlockedHayvan: ['snake'], // Düzeltildi: Artık bir dizi değil, bir dize
         unlockedYem: ['apple'],
         unlockedArkaplan: ['dark'],
         unlockedOzelyem: [],
@@ -107,6 +107,66 @@ document.addEventListener('DOMContentLoaded', () => {
         activeFoods: ['apple'],
         activePowerups: [],
         unlockedLevels: [1],
+    };
+    let playerData = {};
+
+    // Veri Yapıları
+    const levels = [
+        { id: 0, name: 'Klasik Mod', mission: 'En yüksek skoru yap!', config: {} }, // Classic mode handled separately
+        { id: 1, name: 'Yeşil Çayır', mission: '10 yem topla', config: { target: 10, progressType: 'food' } },
+        { id: 2, name: 'Hız Patikası', mission: 'Duvarlara çarpmadan 15 yem topla', config: { wallsAreBombs: true, target: 15, progressType: 'food' } },
+        { id: 3, name: 'Haylaz Yem', mission: 'Yem kaçmadan 10 kere yakala', config: { foodMoves: true, foodMoveInterval: 5000, target: 10, progressType: 'food' } },
+        { id: 4, name: 'Mayınlı Bölge', mission: '150 puana ulaş', config: { bombCount: 5, target: 150, progressType: 'score' } },
+        { id: 5, name: 'Yılan Düellosu', mission: 'Rakibinden daha uzun ol', config: { opponent: true, target: null, progressType: 'length' } }, // Special case for length
+        { id: 6, name: 'Dönen Tuzak', mission: 'Yemin etrafındaki bombaya çarpma', config: { rotatingBomb: true, target: null, progressType: 'survival' } }, // No explicit progress bar
+        { id: 7, name: 'Adrenalin', mission: 'Hızlı modda 200 puana ulaş', config: { speedMultiplier: 1.5, target: 200, progressType: 'score' } },
+        { id: 8, name: 'Görünmez Labirent', mission: 'Görünmez duvarlara çarpmadan 10 yem topla', config: { invisibleWalls: true, target: 10, progressType: 'food' } },
+        { id: 9, name: 'Kontrolsüz Alan', mission: 'Ters kontrollerle 5 yem topla', config: { reversedControls: true, target: 5, progressType: 'food' } },
+        { id: 10, name: 'Kıyamet Günü', mission: '60 saniye hayatta kal!', config: { wallsAreBombs: true, bombCount: 3, opponent: true, foodMoves: true, foodMoveInterval: 3000, timer: 60, target: 60, progressType: 'timer' } },
+    ];
+
+    const shopItems = {
+        renk: [
+            { id: 'green', name: 'Yeşil', price: 0, value: '#4caf50' },
+            { id: 'blue', name: 'Mavi', price: 50, value: '#2196F3' },
+            { id: 'orange', name: 'Turuncu', price: 75, value: '#FF9800' },
+            { id: 'red', name: 'Kırmızı', price: 100, value: '#F44336' },
+            { id: 'purple', name: 'Mor', price: 120, value: '#9C27B0' },
+            { id: 'yellow', name: 'Sarı', price: 150, value: '#FFEB3B' }
+        ],
+        hayvan: [
+            { id: 'snake', name: 'Yılan', price: 0, value: '🐍' },
+            { id: 'dragon', name: 'Ejderha', price: 200, value: '🐉' },
+            { id: 'caterpillar', name: 'Tırtıl', price: 150, value: '🐛' },
+            { id: 'worm', name: 'Solucan', price: 100, value: '🪱' },
+            { id: 'lizard', name: 'Kertenkele', price: 250, value: '🦎' },
+            { id: 'fish', name: 'Balık', price: 180, value: '🐠' }
+        ],
+        yem: [
+            { id: 'apple', name: 'Elma', price: 0, value: '🍎' },
+            { id: 'strawberry', name: 'Çilek', price: 25, value: '🍓' },
+            { id: 'orange', name: 'Portakal', price: 25, value: '🍊' },
+            { id: 'banana', name: 'Muz', price: 30, value: '🍌' },
+            { id: 'grape', name: 'Üzüm', price: 35, value: '🍇' },
+            { id: 'cherry', name: 'Kiraz', price: 40, value: '🍒' }
+        ],
+        arkaplan: [
+            { id: 'dark', name: 'Karanlık', price: 0, value: '#111' },
+            { id: 'light', name: 'Açık Gri', price: 150, value: '#555' },
+            { id: 'blue_sky', name: 'Mavi Gökyüzü', price: 200, value: '#87CEEB' },
+            { id: 'forest', name: 'Orman', price: 250, value: '#228B22' },
+            { id: 'desert', name: 'Çöl', price: 300, value: '#FAD201' },
+            { id: 'space', name: 'Uzay', price: 350, value: '#000033' }
+        ],
+        ozelyem: [
+            { id: '2x', name: '2x Puan', price: 300, value: '✨', description: '15sn puanları ikiye katlar.' },
+            { id: 'shield', name: 'Kalkan', price: 400, value: '🛡️', description: '15sn dokunulmazlık sağlar.' },
+            { id: 'magnet', name: 'Mıknatıs', price: 500, value: '🧲', description: 'Yemleri kendine çeker.' },
+            { id: 'speed', name: 'Hız', price: 250, value: '⚡', description: '10sn yılanı hızlandırır.' },
+            { id: 'slow', name: 'Yavaşlat', price: 250, value: '🐢', description: '10sn yılanı yavaşlatır.' },
+            { id: 'grow', name: 'Büyü', price: 350, value: '🔼', description: 'Yılanı 2 birim büyütür.' },
+            { id: 'shrink', price: 350, value: '🔽', description: 'Yılanı 2 birim küçültür.' }
+        ]
     };
     let playerData = {};
 
@@ -444,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     adContinueUsed = true;
                     snake.splice(1, Math.min(3, snake.length - 1));
                     activePowerups['shield'] = { startTime: Date.now(), duration: 3000, value: '🛡️' };
-                    showToast("Oyuna devam ediyor!");
+                    showToast("Oyuna devam ediliyor!");
                 }
                 saveData();
                 updateUI();
