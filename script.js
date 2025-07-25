@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'speed', name: 'Hız', price: 250, value: '⚡', description: '10sn yılanı hızlandırır.' },
             { id: 'slow', name: 'Yavaşlat', price: 250, value: '🐢', description: '10sn yılanı yavaşlatır.' },
             { id: 'grow', name: 'Büyü', price: 350, value: '🔼', description: 'Yılanı 2 birim büyütür.' },
-            { id: 'shrink', name: 'Küçül', price: 350, value: '🔽', description: 'Yılanı 2 birim küçültür.' }
+            { id: 'shrink', price: 350, value: '🔽', description: 'Yılanı 2 birim küçültür.' }
         ]
     };
     let currentMission = {};
@@ -226,6 +226,9 @@ document.addEventListener('DOMContentLoaded', () => {
             snake.push({ x: startPosition.x - i, y: startPosition.y });
         }
         lastSnakeForRender = JSON.parse(JSON.stringify(snake));
+        console.log("Initial snake:", snake);
+        console.log("gridSize:", gridSize);
+        console.log("tileCountX:", tileCountX, "tileCountY:", tileCountY);
 
         floatingTexts = [];
         specialItems = [];
@@ -704,6 +707,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const renderX = oldPart.x * (1 - alpha) + part.x * alpha;
             const renderY = oldPart.y * (1 - alpha) + part.y * alpha;
+            
+            if (isHead) {
+                console.log(`Drawing head at: (${renderX}, ${renderY}) with size ${gridSize * snakeSegmentDrawScale}`);
+            }
             drawSnakePart({ x: renderX, y: renderY }, color, isHead, direction);
         });
 
@@ -1136,6 +1143,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Set initial volumes after context is resumed
                     const audioSettings = playerData.audioSettings || { master: -10, ui: -10, effects: -10 };
+                    masterVolumeSlider.value = audioSettings.master;
+                    uiVolumeSlider.value = audioSettings.ui;
+                    effectsVolumeSlider.value = audioSettings.effects;
                     Tone.Master.volume.value = audioSettings.master;
                     uiChannel.volume.value = audioSettings.ui;
                     effectsChannel.volume.value = audioSettings.effects;
