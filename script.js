@@ -700,12 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
         snake.forEach((part, index) => {
             const isHead = index === 0;
             const color = isHead ? snakeHeadColor : snakeBodyColor;
-            const oldPart = lastSnakeForRender[index];
-
-            if (!oldPart) {
-                drawSnakePart(part, color, isHead, direction);
-                return;
-            }
+            const oldPart = lastSnakeForRender[index] || part; // Fallback to current part
 
             const renderX = oldPart.x * (1 - alpha) + part.x * alpha;
             const renderY = oldPart.y * (1 - alpha) + part.y * alpha;
