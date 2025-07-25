@@ -444,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     adContinueUsed = true;
                     snake.splice(1, Math.min(3, snake.length - 1));
                     activePowerups['shield'] = { startTime: Date.now(), duration: 3000, value: '🛡️' };
-                    showToast("Oyuna devam ediliyor!");
+                    showToast("Oyuna devam ediyor!");
                 }
                 saveData();
                 updateUI();
@@ -1036,8 +1036,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (isUnlocked) {
                         btn = `<button data-action="equip" data-category="${category}" data-itemid="${item.id}">Seç</button>`;
                     }
-                } else {
-                    btn = `<button data-action="buy" data-category="${category}" data-itemid="${item.id}">Al (${item.price})</button>`;
                 }
 
                 itemEl.innerHTML = `<div class="item-preview" style="background-color:${item.value};">${category === 'renk' || category === 'arkaplan' ? '' : item.value}</div><p>${item.name}</p>${btn}`;
