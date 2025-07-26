@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         totalFoodEatenSession: 0, // Mevcut oyun oturumunda yenen yem sayısı
         totalGamesPlayed: 0, // Toplam oynanan oyun sayısı
         unlockedRenk: ['green'],
-        unlockedHayvan: 'snake', // Düzeltildi: Artık bir dizi değil, bir dize
+        unlockedHayvan: ['snake'],
         unlockedYem: ['apple'],
         unlockedArkaplan: ['dark'],
         unlockedOzelyem: [],
@@ -712,7 +712,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const snakeHeadColor = shopItems.renk.find(s => s.id === playerData.equippedRenk).value;
         const snakeBodyColor = shadeColor(snakeHeadColor, -25);
-        const equippedAnimal = shopItems.hayvan.find(h => h.id === playerData.equippedHayvan).value;
+        
+        // Debugging logs
+        console.log("playerData.equippedHayvan:", playerData.equippedHayvan);
+        console.log("shopItems.hayvan:", shopItems.hayvan);
+        const foundAnimal = shopItems.hayvan.find(h => h.id === playerData.equippedHayvan);
+        console.log("foundAnimal:", foundAnimal);
+
+        const equippedAnimal = foundAnimal ? foundAnimal.value : '🐍'; // Add a fallback
 
         snake.forEach((part, index) => {
             const isHead = index === 0;
@@ -934,6 +941,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadData() {
         const saved = localStorage.getItem('snakeGameData_v18');
         playerData = saved ? { ...defaultPlayerData, ...JSON.parse(saved) } : { ...defaultPlayerData };
+
+        // Ensure equippedHayvan is valid
+        const validAnimals = shopItems.hayvan.map(item => item.id);
+        if (!validAnimals.includes(playerData.equippedHayvan)) {
+            playerData.equippedHayvan = 'snake'; // Default to 'snake' if current equipped is invalid
+        }
+
         playerData.totalFoodEatenSession = playerData.totalFoodEatenSession || 0;
         playerData.totalGamesPlayed = playerData.totalGamesPlayed || 0;
         
