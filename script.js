@@ -560,12 +560,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const tail = snake[snake.length - 1];
                     snake.push({ ...tail }, { ...tail });
                     floatingTexts.push({ text: `🔼 Büyüdün!`, x: head.x, y: head.y, alpha: 1 });
-                } else if (item.type === 'shrink') {
-                    if (snake.length > 3) {
-                        snake.pop();
-                        snake.pop();
-                    }
-                    floatingTexts.push({ text: `🔽 Küçüldün!`, x: head.x, y: head.y, alpha: 1 });
                 } else {
                     activePowerups[item.type] = { startTime: Date.now(), duration: 15000, value: shopItems.ozelyem.find(p => p.id === item.type).value };
                     floatingTexts.push({ text: `${item.value} Aktif!`, x: head.x, y: head.y, alpha: 1 });
@@ -717,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("playerData.equippedHayvan:", playerData.equippedHayvan);
         console.log("shopItems.hayvan:", shopItems.hayvan);
         const foundAnimal = shopItems.hayvan.find(h => h.id === playerData.equippedHayvan);
-        console.log("foundAnimal:", foundAnimal);
+        console.log("foundAnimal:", found);
 
         const equippedAnimal = foundAnimal ? foundAnimal.value : '🐍'; // Add a fallback
 
@@ -1310,9 +1304,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.addEventListener('resize', resizeCanvas);
 
-        document.addEventListener('touchmove', function(event) {
-            event.preventDefault();
-        }, { passive: false });
+        // Removed global event.preventDefault() for touchmove
     }
 
     function shadeColor(color, percent) {
