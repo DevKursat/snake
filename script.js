@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         totalFoodEatenSession: 0, // Mevcut oyun oturumunda yenen yem sayısı
         totalGamesPlayed: 0, // Toplam oynanan oyun sayısı
         unlockedRenk: ['green'],
-        unlockedHayvan: ['snake'],
+        unlockedHayvan: 'snake', // Düzeltildi: Artık bir dizi değil, bir dize
         unlockedYem: ['apple'],
         unlockedArkaplan: ['dark'],
         unlockedOzelyem: [],
@@ -722,21 +722,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const equippedAnimal = foundAnimal ? foundAnimal.value : '🐍'; // Add a fallback
 
         snake.forEach((part, index) => {
-            const isHead = index === 0;
-            const color = isHead ? snakeHeadColor : snakeBodyColor;
             const oldPart = lastSnakeForRender[index] || part; // Fallback to current part
 
             const renderX = oldPart.x * (1 - alpha) + part.x * alpha;
             const renderY = oldPart.y * (1 - alpha) + part.y * alpha;
             
-            if (isHead) {
-                // Draw the selected animal emoji for the head
+            if (playerData.equippedHayvan !== 'snake') { // If a custom animal is equipped, draw emoji for all parts
                 ctx.font = `${gridSize * 0.9 * snakeSegmentDrawScale}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(equippedAnimal, renderX * gridSize + gridSize / 2, renderY * gridSize + gridSize / 2);
-            } else {
-                // Draw rounded rectangle for body segments
+            } else { // If default 'snake' is equipped, draw rounded rectangles and eyes for head
+                const isHead = index === 0;
+                const color = isHead ? snakeHeadColor : snakeBodyColor;
                 drawSnakePart({ x: renderX, y: renderY }, color, isHead, direction);
             }
         });
