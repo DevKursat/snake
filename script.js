@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("playerData.equippedHayvan:", playerData.equippedHayvan);
         console.log("shopItems.hayvan:", shopItems.hayvan);
         const foundAnimal = shopItems.hayvan.find(h => h.id === playerData.equippedHayvan);
-        console.log("foundAnimal:", found);
+        console.log("foundAnimal:", foundAnimal);
 
         const equippedAnimal = foundAnimal ? foundAnimal.value : '🐍'; // Add a fallback
 
@@ -721,6 +721,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const renderX = oldPart.x * (1 - alpha) + part.x * alpha;
             const renderY = oldPart.y * (1 - alpha) + part.y * alpha;
             
+            console.log(`Drawing part ${index}: renderX=${renderX}, renderY=${renderY}, alpha=${alpha}, oldPart=(${oldPart.x},${oldPart.y}), part=(${part.x},${part.y})`);
+
             if (playerData.equippedHayvan !== 'snake') { // If a custom animal is equipped, draw emoji for all parts
                 ctx.font = `${gridSize * 0.9 * snakeSegmentDrawScale}px Arial`;
                 ctx.textAlign = 'center';
@@ -932,13 +934,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadData() {
         const saved = localStorage.getItem('snakeGameData_v18');
+        console.log("Loading data. Initial playerData.equippedHayvan:", playerData.equippedHayvan);
         playerData = saved ? { ...defaultPlayerData, ...JSON.parse(saved) } : { ...defaultPlayerData };
+        console.log("playerData after loading/defaulting:", playerData.equippedHayvan);
 
         // Ensure equippedHayvan is valid
         const validAnimals = shopItems.hayvan.map(item => item.id);
+        console.log("Valid animals:", validAnimals);
         if (!validAnimals.includes(playerData.equippedHayvan)) {
+            console.warn(`Invalid equippedHayvan '${playerData.equippedHayvan}' found. Resetting to 'snake'.`);
             playerData.equippedHayvan = 'snake'; // Default to 'snake' if current equipped is invalid
         }
+        console.log("playerData.equippedHayvan after validation:", playerData.equippedHayvan);
 
         playerData.totalFoodEatenSession = playerData.totalFoodEatenSession || 0;
         playerData.totalGamesPlayed = playerData.totalGamesPlayed || 0;
@@ -1074,6 +1081,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (action === 'equip') {
             playerData[equippedKey] = item.id;
+            console.log(`Equipped ${item.name}. playerData.equippedHayvan is now: ${playerData.equippedHayvan}`);
         } else if (action === 'add') {
             const activeKey = category === 'yem' ? 'activeFoods' : 'activePowerups';
             playerData[activeKey].push(item.id);
@@ -1115,6 +1123,9 @@ document.addEventListener('DOMContentLoaded', () => {
         tileCountX = fixedTileCountX;
         tileCountY = Math.floor(canvas.height / gridSize);
         ctx.setTransform(1, 0, 0, 1, 0, 0);
+        // Add console logs here
+        console.log("resizeCanvas - canvas.width:", canvas.width, "canvas.height:", canvas.height);
+        console.log("resizeCanvas - gridSize:", gridSize, "tileCountX:", tileCountX, "tileCountY:", tileCountY);
         if (gameInProgress) draw();
     }
 
